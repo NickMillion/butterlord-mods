@@ -10,15 +10,15 @@ using HarmonyLib;
 using System.IO;
 using System.Xml;
 
-namespace ImprovedSmithing
+namespace ConfigurablePersuasion
 {
-    public class ImprovedSmithingConfig
+    public class ConfigurablePersuasionConfig
     {
-        private static string FILE_NAME = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/improvedsmithing.xml";
+        private static string FILE_NAME = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ConfigurablePersuasion.xml";
 
         public XmlDocument config = new XmlDocument();
 
-        public ImprovedSmithingConfig()
+        public ConfigurablePersuasionConfig()
         {
             XmlReaderSettings readerSettings = new XmlReaderSettings();
             readerSettings.IgnoreComments = true;

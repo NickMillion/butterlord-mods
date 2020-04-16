@@ -22,6 +22,7 @@ namespace WarAttrition
             private static void Prefix(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior __instance, Kingdom kingdom)
             {
                 XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("WarAttritionSettings");
+                bool playerLeadKingdomIgnoresAutoPeace = bool.Parse(config.SelectSingleNode("PlayerLeadKingdomIgnoresAutoPeace").InnerText);
                 float raidImpact = float.Parse(config.SelectSingleNode("RaidImpact").InnerText);
                 float siegeImpact = float.Parse(config.SelectSingleNode("SiegeImpact").InnerText);
                 float casualtyImpact = float.Parse(config.SelectSingleNode("CasualtyImpact").InnerText);
@@ -93,56 +94,51 @@ namespace WarAttrition
                     if (chance < peace && peace > attritionNecessary) //if peace chance is rolled and peace is greater than attrition minimum
                     {
                         //InformationManager.DisplayMessage(new InformationMessage("PEACE DECLARED BETWEEN " + kingdom.Name.ToString() + " AND " + faction2.Name.ToString() + " WITH " + peace + " ATTRITION."));
-                        MakePeaceAction.Apply(kingdom, faction2);
+                        if (playerLeadKingdomIgnoresAutoPeace && !(kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero)))
+                        {
+                            MakePeaceAction.Apply(kingdom, faction2);
+                        } else
+                        {
+                            MakePeaceAction.Apply(kingdom, faction2);
+                        }
                     }
                 }
             }
         }
 
-        /**[HarmonyPatch(typeof(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior), "ThinkAboutDeclaringWar")]
+        [HarmonyPatch(typeof(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior), "ThinkAboutDeclaringWar")]
         public class AddPatchThinkAboutDeclaringWar
         {
             private static void Prefix(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior __instance, Kingdom kingdom)
             {
                 XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("WarAttritionSettings");
-                float daysSinceLastWarStartToStartNew = float.Parse(config.SelectSingleNode("DaysSinceLastWarStartToStartNew").InnerText);
-                double daysSinceLastWarStartCheck = 0;
+                bool playerLeadKingdomIgnoresAutoWar = bool.Parse(config.SelectSingleNode("PlayerLeadKingdomIgnoresAutoWar").InnerText);
+
                 List<IFaction> possibleKingdomsToDeclareWar = FactionHelper.GetPossibleKingdomsToDeclareWar(kingdom);
-                double timeSinceLastWarStart = 0;
                 float num = 0f;
                 IFaction faction = null;
                 foreach (IFaction faction2 in possibleKingdomsToDeclareWar)
                 {
-                    IEnumerable<CampaignWar> enumerable = Campaign.Current.FactionManager.FindCampaignWarsBetweenFactions(faction, faction2);
-                    CampaignWar campaignWar;
-                    if (enumerable == null)
-                    {
-                        campaignWar = null;
-                    }
-                    else
-                    {
-                        campaignWar = (from war in enumerable.ToList<CampaignWar>()
-                                       orderby war.StartDate - CampaignTime.Now descending
-                                       select war).FirstOrDefault<CampaignWar>();
-                    }
-                    CampaignWar campaignWar2 = campaignWar; //because they did this in the base game!
 
                     float scoreOfDeclaringWar = Campaign.Current.Models.DiplomacyModel.GetScoreOfDeclaringWar(kingdom, faction2, false);
                     if (scoreOfDeclaringWar > num)
                     {
-
-                        timeSinceLastWarStart = (CampaignTime.Now - campaignWar2.StartDate).ToDays;
-                        daysSinceLastWarStartCheck = CampaignTime.DaysFromNow(daysSinceLastWarStartToStartNew).ToDays;
                         faction = faction2;
                         num = scoreOfDeclaringWar;
                     }
                 }
-                if (faction != null && MBRandom.RandomFloat < Math.Min(0.25f, num / 100000f) && timeSinceLastWarStart > daysSinceLastWarStartCheck)
+                if (faction != null && MBRandom.RandomFloat < Math.Min(0.25f, num / 100000f))
                 {
-                    DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
+                    if (playerLeadKingdomIgnoresAutoWar && !(kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero)))
+                    {
+                        DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
+                    } else
+                    {
+                        DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
+                    }
                 }
             }
-        }*/
+        }
 
 
         [HarmonyPatch(typeof(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior), "DailyTick")]
@@ -151,8 +147,10 @@ namespace WarAttrition
             private static void Prefix(TaleWorlds.CampaignSystem.SandBox.CampaignBehaviors.PoliticalStagnationAndBorderIncidentCampaignBehavior __instance)
             {
                 XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("WarAttritionSettings");
-                float dailyCheckChance = float.Parse(config.SelectSingleNode("DailyCheckChance").InnerText);
+                float dailyCheckChancePeace = float.Parse(config.SelectSingleNode("DailyCheckChancePeace").InnerText);
+                float dailyCheckChanceWar = float.Parse(config.SelectSingleNode("DailyCheckChanceWar").InnerText);
                 bool playerLeadKingdomIgnoresAutoPeace = bool.Parse(config.SelectSingleNode("PlayerLeadKingdomIgnoresAutoPeace").InnerText);
+                bool playerLeadKingdomIgnoresAutoWar = bool.Parse(config.SelectSingleNode("PlayerLeadKingdomIgnoresAutoWar").InnerText);
 
                 foreach (Kingdom kingdom in Kingdom.All)
                 {
@@ -184,13 +182,9 @@ namespace WarAttrition
                 }
                 foreach (Kingdom kingdom2 in Kingdom.All)
                 {
-                    if (MBRandom.RandomFloat < dailyCheckChance && kingdom2.IsKingdomFaction)
+                    if (kingdom2.IsKingdomFaction)
                     {
-                        if (!TaleWorlds.CampaignSystem.ManagedParameters.Instance.GetManagedParameter(TaleWorlds.CampaignSystem.ManagedParametersEnum.IsWarDeclarationDisabled))
-                        {
-                            __instance.ThinkAboutDeclaringWar(kingdom2);
-                        }
-                        if (!TaleWorlds.CampaignSystem.ManagedParameters.Instance.GetManagedParameter(TaleWorlds.CampaignSystem.ManagedParametersEnum.IsPeaceDeclarationDisabled))
+                        if (MBRandom.RandomFloat < dailyCheckChancePeace)
                         {
                             if (playerLeadKingdomIgnoresAutoPeace)
                             {
@@ -198,9 +192,23 @@ namespace WarAttrition
                                 {
                                     __instance.ThinkAboutDeclaringPeace(kingdom2);
                                 }
-                            } else
+                            }
+                            else
                             {
                                 __instance.ThinkAboutDeclaringPeace(kingdom2);
+                            }
+                        }
+                        if (MBRandom.RandomFloat < dailyCheckChanceWar)
+                        {
+                            if (playerLeadKingdomIgnoresAutoWar)
+                            {
+                                if (!kingdom2.Leader.Equals(Hero.MainHero))
+                                {
+                                    __instance.ThinkAboutDeclaringWar(kingdom2);
+                                }
+                            } else
+                            {
+                                __instance.ThinkAboutDeclaringWar(kingdom2);
                             }
                         }
                     }

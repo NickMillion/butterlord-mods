@@ -54,6 +54,14 @@ namespace ExperienceMultiplier
                             postfix = typeof(AddCalculateLearningLimitPatchFirst).GetMethod("Postfix");
                             toPatch.Add((original, null, postfix));
                         }
+
+                        /**if (name == "MultiplierSettings" && node.Attributes["enabled"].Value == "true")
+                        {
+                            //[HarmonyPatch(typeof(Hero), "AddSkillXp")]
+                            FileLog.Log("MULTIPLIER SHOULD PATCH");
+                            var original = typeof(Hero).GetMethod("AddSkillXp");
+                            var prefix = typeof(AddSkillXpPatcher).GetMethod("Prefix");
+                        }*/
                     }
                 }
             }

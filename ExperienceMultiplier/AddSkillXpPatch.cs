@@ -5,199 +5,201 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.GameComponents;
 using TaleWorlds.Core;
+using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
 namespace ExperienceMultiplier
 {
+    //clean this shit up
     [HarmonyPatch(typeof(Hero), "AddSkillXp")]
     public class AddSkillXpPatcher
     {
-        private static void Prefix(Hero __instance, SkillObject skill, int xpAmount)
+        private static void Prefix(Hero __instance, SkillObject skill, float xpAmount)
         {
-            try
+            XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("MultiplierSettings");
+
+            //Just making it a little easier to remember
+            Hero thisHeroRef = __instance;
+            Hero mainHeroRef = Hero.MainHero;
+
+            HeroDeveloper heroDeveloper = __instance.HeroDeveloper;
+            if (heroDeveloper != null && skill != null)
             {
-                XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("MultiplierSettings");
-                HeroDeveloper heroDeveloper = (HeroDeveloper)typeof(Hero).GetField("_heroDeveloper", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(__instance);
-                Hero thisHeroRef = __instance;
-                Hero mainHeroRef = Hero.MainHero;
-                bool flag = heroDeveloper != null;
-                if (flag)
+
+                #region loading stuff
+                bool linearLeveling = bool.Parse(config.SelectSingleNode("LinearLeveling").InnerText);
+                bool onlyMain = bool.Parse(config.SelectSingleNode("OnlyPlayerHero").InnerText);
+                bool alsoCompanions = bool.Parse(config.SelectSingleNode("AlsoPlayerCompanions").InnerText);
+                float vigMultiplier = float.Parse(config.SelectSingleNode("VIGMultiplier").InnerText);
+                float ctrMultiplier = float.Parse(config.SelectSingleNode("CTRMultiplier").InnerText);
+                float endMultiplier = float.Parse(config.SelectSingleNode("ENDMultiplier").InnerText);
+                float cngMultiplier = float.Parse(config.SelectSingleNode("CNGMultiplier").InnerText);
+                float socMultiplier = float.Parse(config.SelectSingleNode("SOCMultiplier").InnerText);
+                float intMultiplier = float.Parse(config.SelectSingleNode("INTMultiplier").InnerText);
+                #endregion
+
+                //Initialize the final multiplier as base multiplier
+                float finalMultiplier = float.Parse(config.SelectSingleNode("Multiplier").InnerText);
+
+                //should add a bool to skip over all the skill multipliers? "EnableSkillMultipliers"?
+
+                #region vigor
+                //vig
+                if (skill.GetName().Equals(DefaultSkills.OneHanded.GetName()))
                 {
-                    bool onlyMain = bool.Parse(config.SelectSingleNode("OnlyPlayerHero").InnerText);
-                    bool alsoCompanions = bool.Parse(config.SelectSingleNode("AlsoPlayerCompanions").InnerText);
-                    double vigMultiplier = double.Parse(config.SelectSingleNode("VIGMultiplier").InnerText);
-                    double ctrMultiplier = double.Parse(config.SelectSingleNode("CTRMultiplier").InnerText);
-                    double endMultiplier = double.Parse(config.SelectSingleNode("ENDMultiplier").InnerText);
-                    double cngMultiplier = double.Parse(config.SelectSingleNode("CNGMultiplier").InnerText);
-                    double socMultiplier = double.Parse(config.SelectSingleNode("SOCMultiplier").InnerText);
-                    double intMultiplier = double.Parse(config.SelectSingleNode("INTMultiplier").InnerText);
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("OneHandedMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * vigMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.TwoHanded.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("TwoHandedMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * vigMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Polearm.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("PolearmMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * vigMultiplier;
+                }
+                #endregion
 
-                    double baseMultiplier = double.Parse(config.SelectSingleNode("Multiplier").InnerText); //multiplier
-                    double finalMultiplier = baseMultiplier;
+                #region control
+                //ctr
+                if (skill.GetName().Equals(DefaultSkills.Bow.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("BowMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * ctrMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Crossbow.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("CrossbowMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * ctrMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Throwing.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("ThrowingMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * ctrMultiplier;
+                }
+                #endregion
 
-                    //vig
-                    if (skill.GetName().Equals(DefaultSkills.OneHanded.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("OneHandedMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * vigMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.TwoHanded.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("TwoHandedMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * vigMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Polearm.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("PolearmMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * vigMultiplier;
-                    }
+                #region endurance
+                //end
+                if (skill.GetName().Equals(DefaultSkills.Riding.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("RidingMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * endMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Athletics.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("AthleticsMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * endMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Crafting.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("SmithingMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * endMultiplier;
+                }
+                #endregion
 
-                    //ctr
-                    if (skill.GetName().Equals(DefaultSkills.Bow.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("BowMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * ctrMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Crossbow.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("CrossbowMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * ctrMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Throwing.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("ThrowingMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * ctrMultiplier;
-                    }
+                #region cunning
+                //cng
+                if (skill.GetName().Equals(DefaultSkills.Scouting.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("ScoutingMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * cngMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Tactics.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("TacticsMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * cngMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Roguery.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("RogueryMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * cngMultiplier;
+                }
+                #endregion
 
-                    //end
-                    if (skill.GetName().Equals(DefaultSkills.Riding.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("RidingMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * endMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Athletics.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("AthleticsMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * endMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Crafting.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("SmithingMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * endMultiplier;
-                    }
+                #region social
+                //soc
+                if (skill.GetName().Equals(DefaultSkills.Charm.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("CharmMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * socMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Leadership.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("LeadershipMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * socMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Trade.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("TradeMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * socMultiplier;
+                }
+                #endregion
 
-                    //cng
-                    if (skill.GetName().Equals(DefaultSkills.Scouting.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("ScoutingMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * cngMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Tactics.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("TacticsMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * cngMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Roguery.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("RogueryMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * cngMultiplier;
-                    }
+                #region intellect
+                //int
+                if (skill.GetName().Equals(DefaultSkills.Steward.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("StewardMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * intMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Medicine.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("MedicineMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * intMultiplier;
+                }
+                if (skill.GetName().Equals(DefaultSkills.Engineering.GetName()))
+                {
+                    float thisMultiplier = float.Parse(config.SelectSingleNode("EngineeringMultiplier").InnerText);
+                    finalMultiplier *= thisMultiplier * intMultiplier;
+                }
+                #endregion
 
-                    //soc
-                    if (skill.GetName().Equals(DefaultSkills.Charm.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("CharmMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * socMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Leadership.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("LeadershipMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * socMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Trade.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("TradeMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * socMultiplier;
-                    }
+                #region linear leveling
+                if (linearLeveling)
+                {
+                    float perSkillLevelMultiplier = float.Parse(config.SelectSingleNode("MultiplierIncreasePerSkillLevel").InnerText);
+                    float linearMultiplier = 1 + (thisHeroRef.GetSkillValue(skill) * perSkillLevelMultiplier);
+                    finalMultiplier *= linearMultiplier;
+                }
+                #endregion
+                
+                //Initialize how much XP we'll be adding.
+                float xpToAdd = xpAmount;
 
-                    //int
-                    if (skill.GetName().Equals(DefaultSkills.Steward.GetName()))
+                //if (thisHeroRef.Equals(mainHeroRef))
+                //{
+                //    InformationManager.DisplayMessage(new InformationMessage("ORIGINAL XP TO BE ADDED TO " + thisHeroRef.Name + " = " + xpToAdd + " WITH MULTIPLIER OF " + finalMultiplier));
+                //}
+
+                #region only main or companions check
+                if (onlyMain)
+                {
+                    if (thisHeroRef.Equals(mainHeroRef))
                     {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("StewardMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * intMultiplier;
+                        float playerMultiplier = float.Parse(config.SelectSingleNode("PlayerHeroMultiplier").InnerText);
+                        xpToAdd *= playerMultiplier;
                     }
-                    if (skill.GetName().Equals(DefaultSkills.Medicine.GetName()))
+                    else if (alsoCompanions && thisHeroRef.Clan.Equals(mainHeroRef.Clan))
                     {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("MedicineMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * intMultiplier;
-                    }
-                    if (skill.GetName().Equals(DefaultSkills.Engineering.GetName()))
-                    {
-                        double thisMultiplier = double.Parse(config.SelectSingleNode("EngineeringMultiplier").InnerText);
-                        finalMultiplier = baseMultiplier * thisMultiplier * intMultiplier;
-                    }
-                    int num = 0;
-                    if (onlyMain)
-                    {
-                        if (alsoCompanions)
-                        {
-                            if (thisHeroRef.Equals(mainHeroRef)) //main hero
-                            {
-                                double thisMultiplier = double.Parse(config.SelectSingleNode("PlayerHeroMultiplier").InnerText);
-                                num = (int)Math.Ceiling((double)xpAmount * finalMultiplier * thisMultiplier);
-                                heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                            }
-                            else if (thisHeroRef.Clan.Equals(mainHeroRef.Clan) && !thisHeroRef.Equals(mainHeroRef)) //companions but not main hero
-                            {
-                                double thisMultiplier = double.Parse(config.SelectSingleNode("PlayerCompanionsMultiplier").InnerText);
-                                num = (int)Math.Ceiling((double)xpAmount * finalMultiplier * thisMultiplier);
-                                heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                            }
-                            else //everyone else
-                            {
-                                num = (int)Math.Ceiling((double)xpAmount);
-                                heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                            }
-                        }
-                        else
-                        {
-                            if (thisHeroRef.Equals(mainHeroRef))
-                            {
-                                double thisMultiplier = double.Parse(config.SelectSingleNode("PlayerHeroMultiplier").InnerText);
-                                num = (int)Math.Ceiling((double)xpAmount * finalMultiplier * thisMultiplier);
-                                heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                            }
-                            else
-                            {
-                                num = (int)Math.Ceiling((double)xpAmount);
-                                heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                            }
-                        }
-                    } else
-                    {
-                        if (thisHeroRef.Equals(mainHeroRef)) //main hero
-                        {
-                            double thisMultiplier = double.Parse(config.SelectSingleNode("PlayerHeroMultiplier").InnerText);
-                            num = (int)Math.Ceiling((double)xpAmount * finalMultiplier * thisMultiplier);
-                            heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                        }
-                        else if (thisHeroRef.Clan.Equals(mainHeroRef.Clan) && !thisHeroRef.Equals(mainHeroRef)) //companions but not main hero
-                        {
-                            double thisMultiplier = double.Parse(config.SelectSingleNode("PlayerCompanionsMultiplier").InnerText);
-                            num = (int)Math.Ceiling((double)xpAmount * finalMultiplier * thisMultiplier);
-                            heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                        }
-                        else //everyone else
-                        {
-                            num = (int)Math.Ceiling((double)xpAmount * finalMultiplier);
-                            heroDeveloper.AddSkillXp(skill, (float)num, true, true);
-                        }
+                        float companionMultiplier = float.Parse(config.SelectSingleNode("PlayerCompanionsMultiplier").InnerText);
+                        xpToAdd *= companionMultiplier;
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                FileLog.Log("Patcher " + e.Message);
+                #endregion
+                
+                float maxXpDrop = float.Parse(config.SelectSingleNode("MaxXpPerEvent").InnerText);
+
+                xpToAdd *= finalMultiplier;
+                xpToAdd = Math.Min(xpToAdd, maxXpDrop);
+                heroDeveloper.AddSkillXp(skill, xpToAdd, true, true);
+
+                //if (thisHeroRef.Equals(mainHeroRef))
+                //{
+                //    InformationManager.DisplayMessage(new InformationMessage("TOTAL XP TO BE ADDED TO " + thisHeroRef.Name + " = " + xpToAdd + " WITH MULTIPLIER OF " + finalMultiplier));
+                //}
             }
         }
     }

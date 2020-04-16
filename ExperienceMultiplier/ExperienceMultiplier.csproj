@@ -54,6 +54,10 @@
     <Reference Include="TaleWorlds.Core">
       <HintPath>G:\Steam Games\steamapps\common\Mount &amp; Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath>
     </Reference>
+    <Reference Include="TaleWorlds.Library, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>G:\Steam Games\steamapps\common\Mount &amp; Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath>
+    </Reference>
     <Reference Include="TaleWorlds.Localization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>G:\Steam Games\steamapps\common\Mount &amp; Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
@@ -61,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddCalculateLearningRatePatch.cs" />
+    <None Include="AddMultiplierPatch.cs" />
     <Compile Include="ExperienceMultiplier.cs" />
     <Compile Include="AddSkillXpPatch.cs" />
     <Compile Include="ExperienceMultiplierConfig.cs" />
