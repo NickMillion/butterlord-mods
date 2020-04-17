@@ -93,10 +93,13 @@ namespace WarAttrition
                     float chance = MBRandom.RandomFloat;
                     if (chance < peace && peace > attritionNecessary) //if peace chance is rolled and peace is greater than attrition minimum
                     {
-                        //InformationManager.DisplayMessage(new InformationMessage("PEACE DECLARED BETWEEN " + kingdom.Name.ToString() + " AND " + faction2.Name.ToString() + " WITH " + peace + " ATTRITION."));
-                        if (playerLeadKingdomIgnoresAutoPeace && !(kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero)))
+                        bool player = kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero);
+                        if (playerLeadKingdomIgnoresAutoPeace)
                         {
-                            MakePeaceAction.Apply(kingdom, faction2);
+                            if (!player)
+                            {
+                                MakePeaceAction.Apply(kingdom, faction2);
+                            }
                         } else
                         {
                             MakePeaceAction.Apply(kingdom, faction2);
@@ -129,9 +132,13 @@ namespace WarAttrition
                 }
                 if (faction != null && MBRandom.RandomFloat < Math.Min(0.25f, num / 100000f))
                 {
-                    if (playerLeadKingdomIgnoresAutoWar && !(kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero)))
+                    bool player = kingdom.Leader.Equals(Hero.MainHero) || faction.Leader.Equals(Hero.MainHero);
+                    if (playerLeadKingdomIgnoresAutoWar)
                     {
-                        DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
+                        if (!player)
+                        {
+                            DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
+                        }
                     } else
                     {
                         DeclareWarAction.ApplyDeclareWarOverProvocation(kingdom, faction);
@@ -186,29 +193,36 @@ namespace WarAttrition
                     {
                         if (MBRandom.RandomFloat < dailyCheckChancePeace)
                         {
-                            if (playerLeadKingdomIgnoresAutoPeace)
+                            if (!TaleWorlds.CampaignSystem.ManagedParameters.Instance.GetManagedParameter(TaleWorlds.CampaignSystem.ManagedParametersEnum.IsPeaceDeclarationDisabled))
                             {
-                                if (!kingdom2.Leader.Equals(Hero.MainHero))
+                                if (playerLeadKingdomIgnoresAutoPeace)
+                                {
+                                    if (!kingdom2.Leader.Equals(Hero.MainHero))
+                                    {
+                                        __instance.ThinkAboutDeclaringPeace(kingdom2);
+                                    }
+                                }
+                                else
                                 {
                                     __instance.ThinkAboutDeclaringPeace(kingdom2);
                                 }
                             }
-                            else
-                            {
-                                __instance.ThinkAboutDeclaringPeace(kingdom2);
-                            }
                         }
                         if (MBRandom.RandomFloat < dailyCheckChanceWar)
                         {
-                            if (playerLeadKingdomIgnoresAutoWar)
+                            if (!TaleWorlds.CampaignSystem.ManagedParameters.Instance.GetManagedParameter(TaleWorlds.CampaignSystem.ManagedParametersEnum.IsWarDeclarationDisabled))
                             {
-                                if (!kingdom2.Leader.Equals(Hero.MainHero))
+                                if (playerLeadKingdomIgnoresAutoWar)
+                                {
+                                    if (!kingdom2.Leader.Equals(Hero.MainHero))
+                                    {
+                                        __instance.ThinkAboutDeclaringWar(kingdom2);
+                                    }
+                                }
+                                else
                                 {
                                     __instance.ThinkAboutDeclaringWar(kingdom2);
                                 }
-                            } else
-                            {
-                                __instance.ThinkAboutDeclaringWar(kingdom2);
                             }
                         }
                     }
