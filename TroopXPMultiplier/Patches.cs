@@ -18,22 +18,58 @@ namespace TroopXPMultiplier
             {
                 XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("TroopXPSettings");
                 float multiplier = float.Parse(config.SelectSingleNode("Multiplier").InnerText);
-
+                float simMultiplier = float.Parse(config.SelectSingleNode("SimMultiplier").InnerText);
+                float activeMultiplier = 0;
+                bool debugText = false;
+                bool isThisAPlayer = false;
                 int num = attackedTroop.MaxHitPoints();
                 xpAmount = MBMath.Round(0.4f * ((attackedTroop.GetPower() + 0.5f) * (float)(Math.Min(damage, num) + (isFatal ? num : 0))));
-                if (missionType == CombatXpModel.MissionTypeEnum.SimulationBattle)
+
+                if (attackerTroop.HeroObject != null)
                 {
-                    xpAmount *= 8;
+                    if (attackerTroop.HeroObject.Equals(Hero.MainHero))
+                    {
+                        isThisAPlayer = true;
+                    }
                 }
-                if (missionType == CombatXpModel.MissionTypeEnum.PracticeFight)
+
+                if (!isThisAPlayer)
                 {
-                    xpAmount = MathF.Round((float)xpAmount * 0.0625f);
+                    float originalXPAmount = xpAmount;
+                    if (missionType == CombatXpModel.MissionTypeEnum.SimulationBattle)
+                    {
+                        xpAmount = MathF.Round((float)xpAmount * simMultiplier);
+                        activeMultiplier = simMultiplier;
+                    }
+                    else if (missionType == CombatXpModel.MissionTypeEnum.PracticeFight)
+                    {
+                        xpAmount = MathF.Round((float)xpAmount * 0.0625f);
+                        activeMultiplier = 0.0625f;
+                    }
+                    else if (missionType == CombatXpModel.MissionTypeEnum.Tournament)
+                    {
+                        xpAmount = MathF.Round((float)xpAmount * 0.25f);
+                        activeMultiplier = 0.25f;
+                    }
+                    else
+                    {
+                        xpAmount = MathF.Round((float)xpAmount * multiplier);
+                        activeMultiplier = multiplier;
+                    }
+                    string nickIsABadTeacher = "Original XP = " + originalXPAmount + "New XP = " + xpAmount + "by " + activeMultiplier + "x";
+
+                    if (debugText == true)
+                    {
+                        InformationManager.DisplayMessage(new InformationMessage(nickIsABadTeacher));
+                    }
                 }
-                if (missionType == CombatXpModel.MissionTypeEnum.Tournament)
+                else
                 {
-                    xpAmount = MathF.Round((float)xpAmount * 0.25f);
+                    if (debugText == true)
+                    {
+                        InformationManager.DisplayMessage(new InformationMessage("Player gained XP, no bonus for you, loser"));
+                    }
                 }
-                xpAmount = MathF.Round((float)xpAmount * multiplier);
             }
         }
     }

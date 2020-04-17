@@ -17,7 +17,7 @@ namespace TroopXPMultiplier
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            Harmony.DEBUG = false;
+            Harmony.DEBUG = true;
             FileLog.Reset();
             Harmony harmony = new Harmony("mod.bannerlord.troopxpmultiplier");
             try
