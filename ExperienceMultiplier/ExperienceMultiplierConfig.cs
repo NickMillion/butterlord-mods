@@ -37,7 +37,6 @@ namespace ExperienceMultiplier
                     {
                         if (name == "LearningSettings" && node.Attributes["enabled"].Value == "true")
                         {
-                            FileLog.Log("LEARNING SHOULD PATCH");
                             var original = typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningRate", new Type[] { typeof(Hero), typeof(SkillObject), typeof(StatExplainer) });
                             var postfix = typeof(AddCalculateLearningRatePatchFirst).GetMethod("Postfix");
                             toPatch.Add((original, null, postfix));
@@ -58,10 +57,11 @@ namespace ExperienceMultiplier
                         /**if (name == "MultiplierSettings" && node.Attributes["enabled"].Value == "true")
                         {
                             //[HarmonyPatch(typeof(Hero), "AddSkillXp")]
-                            FileLog.Log("MULTIPLIER SHOULD PATCH");
+                            //FileLog.Log("MULTIPLIER SHOULD PATCH");
                             var original = typeof(Hero).GetMethod("AddSkillXp");
-                            var prefix = typeof(AddSkillXpPatcher).GetMethod("Prefix");
-                        }*/
+                            var postfix = typeof(AddSkillXpPatcher).GetMethod("Postfix");
+                            toPatch.Add((original, null, postfix));
+                        }**/
                     }
                 }
             }

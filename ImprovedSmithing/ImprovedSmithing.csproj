@@ -67,6 +67,7 @@
     <Compile Include="ImprovedSmithing.cs" />
     <Compile Include="ImprovedSmithingConfig.cs" />
     <Compile Include="RecipePatch.cs" />
+    <None Include="ScalePatch.cs" />
     <None Include="ImprovedSmithingModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

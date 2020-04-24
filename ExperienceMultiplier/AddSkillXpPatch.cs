@@ -10,7 +10,6 @@ using TaleWorlds.Localization;
 
 namespace ExperienceMultiplier
 {
-    //clean this shit up
     [HarmonyPatch(typeof(Hero), "AddSkillXp")]
     public class AddSkillXpPatcher
     {
@@ -42,7 +41,7 @@ namespace ExperienceMultiplier
                 float finalMultiplier = float.Parse(config.SelectSingleNode("Multiplier").InnerText);
 
                 //should add a bool to skip over all the skill multipliers? "EnableSkillMultipliers"?
-
+                #region skills and stuff
                 #region vigor
                 //vig
                 if (skill.GetName().Equals(DefaultSkills.OneHanded.GetName()))
@@ -155,6 +154,7 @@ namespace ExperienceMultiplier
                     float thisMultiplier = float.Parse(config.SelectSingleNode("EngineeringMultiplier").InnerText);
                     finalMultiplier *= thisMultiplier * intMultiplier;
                 }
+                #endregion
                 #endregion
 
                 #region linear leveling

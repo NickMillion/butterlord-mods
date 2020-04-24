@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarAttrition", "WarAttritio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurablePersuasion", "ConfigurablePersuasion\ConfigurablePersuasion.csproj", "{5356B175-8D6A-46FE-8590-20679A706635}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scavenger", "Scavenger\Scavenger.csproj", "{40684F26-D8C5-4174-A9F2-1FD1782658C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{5356B175-8D6A-46FE-8590-20679A706635}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5356B175-8D6A-46FE-8590-20679A706635}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5356B175-8D6A-46FE-8590-20679A706635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40684F26-D8C5-4174-A9F2-1FD1782658C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40684F26-D8C5-4174-A9F2-1FD1782658C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40684F26-D8C5-4174-A9F2-1FD1782658C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40684F26-D8C5-4174-A9F2-1FD1782658C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

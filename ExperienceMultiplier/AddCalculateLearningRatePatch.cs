@@ -5,6 +5,7 @@ using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.SandBox.GameComponents;
 using TaleWorlds.Core;
+using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
 namespace ExperienceMultiplier
@@ -44,8 +45,9 @@ namespace ExperienceMultiplier
         {
             XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("LearningSettings");
             float multiplier = float.Parse(config.SelectSingleNode("LearningLimitMultiplier").InnerText);
+            int minimumLimit = int.Parse(config.SelectSingleNode("MinimumLearningLimit").InnerText);
             int baseRate = __result;
-            __result = (int)Math.Ceiling(baseRate * multiplier);
+            __result = MBMath.ClampInt((int)Math.Ceiling(baseRate * multiplier), minimumLimit, 99999);
         }
     }
 
@@ -56,8 +58,9 @@ namespace ExperienceMultiplier
         {
             XmlNode config = Core.config.config.ChildNodes[1].SelectSingleNode("LearningSettings");
             float multiplier = float.Parse(config.SelectSingleNode("LearningLimitMultiplier").InnerText);
+            int minimumLimit = int.Parse(config.SelectSingleNode("MinimumLearningLimit").InnerText);
             int baseRate = __result;
-            __result = (int)Math.Ceiling(baseRate * multiplier);
+            __result = MBMath.ClampInt((int)Math.Ceiling(baseRate * multiplier), minimumLimit, 99999);
         }
     }
 }
